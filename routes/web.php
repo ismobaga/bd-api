@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/traductions/download', 'Api\\TraductionController@download');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Route::get('/{any?}', function () {
     return view('client');
