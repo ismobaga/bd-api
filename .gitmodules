@@ -1,0 +1,3 @@
+[submodule "resources/client"]
+	path = resources/client
+	url = https://github.com/ismobaga/bd-client.git
