@@ -21,4 +21,4 @@ Route::get('/traductions/download', 'Api\\TraductionController@download');
 
 Route::get('/{any?}', function () {
     return view('client');
-});
+})->where('any', '.*');;

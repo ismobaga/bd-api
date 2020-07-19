@@ -40,35 +40,40 @@ class TextController extends Controller
     {
         $data = $request->validate([
             'text' => 'required',
-            'details' =>'nullable|string',
+            'details' => 'nullable|string',
+            'valid' => 'nullable|boolean',
             'traductions' => 'nullable|array',
             'traductions.*.text' => 'required_with:traductions.*.lang',
             'traductions.*.details' => 'nullable',
+            'traductions.*.valid' => 'nullable|bool',
         ]);
-
+        $valid = $data['valid'] ?? now();
+        $valid = $valid == false ? NULL : $valid;
         $text = Text::firstOrCreate([
-          'slug'=>  Text::slugify($data['text'])
+            'slug' =>  Text::slugify($data['text'])
         ],  [
-            'text'=>  $data['text'],
-            'details'=>  isset($data['details']) ? $data['details'] : "",
-            'validate_at' => now()
+            'text' =>  $data['text'],
+            'details' =>  $data['details']  ?? "",
+            'validate_at' => $valid
 
         ]);
         $traductions = [];
-        if(isset($data['traductions'] )){
-        foreach ($data['traductions'] as $key => $value) {
-            $traductions[] = [
-                'text_id' => $text->id,
-                'text' => $value['text'],
-                'details' => $value['details'] ?? "",
-                'lang' => $value['lang'],
-                'validate_at' => now(),
-                'slug' => Text::slugify(strval($text->id).$value['text'].$value['lang'])
-            ];
-        }
+        if (isset($data['traductions'])) {
+            foreach ($data['traductions'] as $key => $value) {
+                $valid = $value['valid'] ?? now();
+                $valid = $valid == false ? NULL : $valid;
+                $traductions[] = [
+                    'text_id' => $text->id,
+                    'text' => $value['text'],
+                    'details' => $value['details'] ?? "",
+                    'validate_at' => $valid,
+                    'lang' => $value['lang'],
+                    'slug' => Text::slugify(strval($text->id) . $value['text'] . $value['lang'])
+                ];
+            }
 
-        DB::table('traductions')->insertOrIgnore($traductions);
-    }
+            DB::table('traductions')->insertOrIgnore($traductions);
+        }
         return true; //$text->fresh('traductions');
     }
 
@@ -81,6 +86,7 @@ class TextController extends Controller
     public function show(Text $text)
     {
         $text->load('traductions');
+        
 
         return new TextResource($text);
     }
@@ -96,16 +102,20 @@ class TextController extends Controller
     {
         $data = $request->validate([
             'text' => 'required',
+            'details' => 'nullable|string',
+            'valid' => 'nullable|boolean',
             // 'traductions' => 'nullable|array',
             // 'traductions.*.text' => 'required_with:traductions.*.lang',
         ]);
+        $valid = $data['valid'] ?? now();
+        $valid = $valid == false ? NULL : $valid;
         $text->text = $data['text'];
-        $text->details = isset($data['details']) ? $data['details'] : "";
+        $text->details = $data['details'] ?? "";
         $text->slug = Text::slugify($data['text']);
+        $text->validate_at = $valid==NULL? NULL : $text->validate_at ;
 
         $text->save();
-            return true;
-        
+        return true;
     }
 
     /**

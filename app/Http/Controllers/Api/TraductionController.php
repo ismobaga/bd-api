@@ -39,18 +39,23 @@ class TraductionController extends Controller
             'traductions' => 'nullable|array',
             'traductions.*.text' => 'required_with:traductions.*.lang',
             'traductions.*.details' => 'nullable',
+            'traductions.*.valid' => 'nullable|boolean',
+            
         ]);
 
         if($data['traduction']) $data['traductions']  = [$data['traduction'] ];
         
         $traductions = [];
         foreach ($data['traductions'] as $key => $value) {
+            $valid = $value['valid'] ?? now();
+                $valid = $valid == false ? NULL : $valid;
+                
             $traductions[] = [
                 'text_id' => $data['text_id'],
                 'text' => $value['text'],
                 'lang' => $value['lang'],
                 'details' => $value['lang'] ?? null,
-                'validate_at' => now(),
+                'validate_at' => $valid,
                 'slug' => Traduction::slugify(strval($data['text_id']).$value['text'].$value['lang'])
             ];
         }
@@ -84,13 +89,17 @@ class TraductionController extends Controller
             'text_id' => 'required',
             'traduction.text' => 'required',
             'traduction.details' => 'nullable',
+            'traduction.valid' => 'nullable|boolean',
             // 'traductions.*.text' => 'required_with:traductions.*.lang',
         ]);
+        $valid = $value['valid'] ?? now();
+                $valid = $valid == false ? NULL : $valid;
+                
         $traduction->slug = Traduction::slugify(strval($data['text_id']).$data['traduction']['text'].$data['traduction']['lang']);
         $traduction->text = $data['traduction']['text'];
         $traduction->lang = $data['traduction']['lang'];
         $traduction->details = $data['traduction']['details'] ?? $traduction->details;
-
+        $traduction->validate_at = $valid==NULL? NULL : $traduction->validate_at ;
         $traduction->save();
     }
 
